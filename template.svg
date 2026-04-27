@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="210mm"
+   height="297mm"
+   viewBox="0 0 210 297"
+   version="1.1"
+   id="svg1"
+   inkscape:version="1.4.2 (f4327f4, 2025-05-13)"
+   sodipodi:docname="template.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     inkscape:zoom="0.9147554"
+     inkscape:cx="174.36355"
+     inkscape:cy="130.08942"
+     inkscape:window-width="1152"
+     inkscape:window-height="698"
+     inkscape:window-x="-6"
+     inkscape:window-y="1270"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs1" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <rect
+       style="fill:none;stroke:#000000;stroke-width:0.621723"
+       id="rect2"
+       width="99.377548"
+       height="49.379234"
+       x="0.3108615"
+       y="0.3108615"
+       inkscape:export-filename="template.jpg"
+       inkscape:export-xdpi="96.012695"
+       inkscape:export-ydpi="96.012695" />
+    <rect
+       style="fill:#000000;stroke:#000000;stroke-width:0.498962"
+       id="rect1"
+       width="14.500267"
+       height="14.500267"
+       x="46.551563"
+       y="6.8640642" />
+    <rect
+       style="fill:#000000;stroke:#000000;stroke-width:0.498962"
+       id="rect1-8"
+       width="14.500267"
+       height="14.500267"
+       x="46.551563"
+       y="30.676565" />
+    <rect
+       style="fill:#000000;stroke:#000000;stroke-width:0.998012"
+       id="rect1-1"
+       width="29.003092"
+       height="29.003092"
+       x="66.644836"
+       y="11.082339" />
+    <text
+       xml:space="preserve"
+       style="font-size:8.46667px;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, ';text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:none;stroke:#000000;stroke-width:0.499999"
+       x="20.773817"
+       y="23.181936"
+       id="text2"><tspan
+         sodipodi:role="line"
+         id="tspan2"
+         style="font-weight:bold;font-size:8.46667px;fill:#000000;stroke-width:0.5"
+         x="20.773817"
+         y="23.181936">Seafood</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:4.23333px;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, ';text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:none;stroke:#000000;stroke-width:0.499999"
+       x="21.058018"
+       y="42.876854"
+       id="text2-2"><tspan
+         sodipodi:role="line"
+         id="tspan2-3"
+         style="font-weight:normal;font-size:4.23333px;fill:#000000;stroke-width:0.5"
+         x="21.058018"
+         y="42.876854">Quality Information</tspan></text>
+    <rect
+       style="fill:#000000;stroke:#000000;stroke-width:0.449637"
+       id="rect3"
+       width="24.550842"
+       height="2.1961968"
+       x="8.1623182"
+       y="6.8394017" />
+    <rect
+       style="fill:#000000;stroke:#000000;stroke-width:0.449637"
+       id="rect3-2"
+       width="24.550842"
+       height="2.1961968"
+       x="8.1623182"
+       y="33.297733" />
+  </g>
+</svg>
