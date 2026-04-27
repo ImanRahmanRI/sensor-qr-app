@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+venv/
+.env
+
+# Data and Logs
+*.csv
+*.dat
+*.json
+*.log
+
+# Machine Learning tracking
+mlruns/
