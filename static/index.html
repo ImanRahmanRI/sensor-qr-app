@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Colorimetric Sensor Platform</title>
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .card { border: 1px solid #ccc; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        button { padding: 10px 15px; background: #0052cc; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #003d99; }
+        img { max-width: 100%; height: auto; }
+        .hidden { display: none; }
+        #reader { width: 100%; max-width: 500px; margin: 0 auto; }
+    </style>
+</head>
+<body>
+
+    <h1>Sensor Management</h1>
+
+    <div class="card">
+        <h2>1. Generate New Sensor Label</h2>
+        <form id="generateForm">
+            <label>Sensor Specifications (e.g., Batch A, Temp 5C):</label><br>
+            <input type="text" id="specInput" required style="width: 100%; margin: 10px 0; padding: 8px;"><br>
+            <button type="submit">Generate & Save</button>
+        </form>
+        <div id="generateResult" class="hidden" style="margin-top: 15px;">
+            <p>Success! Label Generated:</p>
+            <img id="resultImage" src="" alt="Generated Label">
+            <p>UUID: <span id="resultUuid"></span></p>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>2. Scan Sensor QR</h2>
+        <button id="startScanBtn" onclick="startScanner()">Start Camera</button>
+        <div id="reader" style="margin-top: 15px;"></div>
+        
+        <div id="sensorData" class="hidden" style="margin-top: 15px; background: #f9f9f9; padding: 15px; border-radius: 8px;">
+            <h3>Sensor Details</h3>
+            <p><strong>Created:</strong> <span id="displayDate"></span></p>
+            <p><strong>Specs:</strong> <span id="displaySpecs"></span></p>
+            
+            <h4>Reference Guide</h4>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <div>
+                    <p style="text-align:center; font-size: 12px;">Fresh (Good)</p>
+                    <div style="width:100px; height:100px; background-color: #8B0000;"></div> </div>
+                <div>
+                    <p style="text-align:center; font-size: 12px;">Tending to Bad</p>
+                    <div style="width:100px; height:100px; background-color: #A52A2A;"></div> </div>
+                <div>
+                    <p style="text-align:center; font-size: 12px;">Fully Bad</p>
+                    <div style="width:100px; height:100px; background-color: #D2B48C;"></div> </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Logic for Generating Label ---
+        document.getElementById('generateForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const spec = document.getElementById('specInput').value;
+            const formData = new FormData();
+            formData.append('spec', spec);
+
+            try {
+                const response = await fetch('/api/sensors/generate', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                
+                document.getElementById('resultImage').src = data.label_url;
+                document.getElementById('resultUuid').innerText = data.uuid;
+                document.getElementById('generateResult').classList.remove('hidden');
+            } catch (error) {
+                alert("Error generating sensor");
+                console.error(error);
+            }
+        });
+
+        // --- Logic for Scanning ---
+        function startScanner() {
+            const html5QrCode = new Html5Qrcode("reader");
+            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+
+            html5QrCode.start({ facingMode: "environment" }, config, async (decodedText) => {
+                // Stop scanner on success
+                html5QrCode.stop();
+                document.getElementById('reader').innerHTML = "Scan successful. Fetching data...";
+
+                // Extract UUID from the URL (Assuming URL looks like http://domain/?sensor=UUID)
+                const urlObj = new URL(decodedText);
+                const sensorId = urlObj.searchParams.get("sensor");
+
+                if(sensorId) {
+                    fetchSensorData(sensorId);
+                } else {
+                    alert("Invalid QR Code Format");
+                }
+            }).catch((err) => { console.error("Camera error:", err); });
+        }
+
+        async function fetchSensorData(sensorId) {
+            try {
+                const response = await fetch(`/api/sensors/${sensorId}`);
+                if (!response.ok) throw new Error("Sensor not found");
+                const data = await response.json();
+                
+                const dateObj = new Date(data.created_at);
+                document.getElementById('displayDate').innerText = dateObj.toLocaleString();
+                document.getElementById('displaySpecs').innerText = data.sensor_specifications;
+                document.getElementById('sensorData').classList.remove('hidden');
+            } catch (error) {
+                alert(error.message);
+            }
+        }
+
+        // On Page Load: Check if URL already has a sensor parameter (User just scanned a QR with native camera)
+        window.onload = () => {
+            const params = new URLSearchParams(window.location.search);
+            const sensorId = params.get('sensor');
+            if (sensorId) {
+                fetchSensorData(sensorId);
+            }
+        };
+    </script>
+</body>
+</html>

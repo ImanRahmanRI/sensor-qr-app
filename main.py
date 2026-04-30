@@ -3,7 +3,7 @@ import io
 import uuid
 import datetime
 import qrcode
-from PIL import Image
+from PIL import Image, ImageOps
 from fastapi import FastAPI, Form, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -43,21 +43,30 @@ async def generate_sensor(spec: str = Form(...)):
     try:
         # 1. Generate QR Code
         qr = qrcode.make(qr_data)
-        qr = qr.resize((250, 250)) # Adjust size to fit your template
-
+        
         # 2. Stitch onto Template
-        # Ensure you have a 'template.jpg' in your /static folder
         template_path = "static/template.jpg"
         if not os.path.exists(template_path):
-            # Create a dummy template if one doesn't exist for testing
-            img = Image.new('RGB', (800, 400), color = (255, 255, 255))
+            img = Image.new('RGB', (1024, 512), color=(255, 255, 255))
             img.save(template_path)
             
-        template = Image.open(template_path)
+        template = Image.open(template_path).convert("RGB") 
         
-        # Paste QR code onto template. 
-        # UPDATE THESE COORDINATES (x, y) based on your actual template layout
-        template.paste(qr, (450, 75)) 
+        # --- NEW EXACT COORDINATE PASTING LOGIC ---
+        # Based on UI measurements: W=113.39, H=113.39
+        # Resizing to 114x114 guarantees the black placeholder is completely covered.
+        exact_size = (114, 114)
+        qr = qr.resize(exact_size) 
+        
+        # Convert the QR code to standard RGB (forces solid white background/black squares)
+        qr_solid = qr.convert('RGB')
+        
+        # Based on UI measurements: X=250, Y=40
+        pasting_coords = (250, 40) 
+        
+        # Paste the solid QR code directly over the template at the exact coordinates
+        template.paste(qr_solid, pasting_coords) 
+        # --- END OF NEW LOGIC ---
 
         # Save to memory buffer
         img_byte_arr = io.BytesIO()
