@@ -15,8 +15,8 @@
         .hidden { display: none; }
         #reader { width: 100%; max-width: 500px; margin: 0 auto; }
         
-        .ref-grid { display: flex; gap: 15px; flex-wrap: wrap; margin-top: 15px; }
-        .ref-item { flex: 1; min-width: 120px; text-align: center; border: 1px solid #eee; padding: 10px; border-radius: 8px; background: #fafafa; }
+        .ref-grid { display: flex; gap: 15px; flex-wrap: wrap; margin-top: 15px; justify-content: space-around; }
+        .ref-item { flex: 1; min-width: 120px; max-width: 150px; text-align: center; border: 1px solid #eee; padding: 10px; border-radius: 8px; background: #fafafa; }
         .ref-item img { width: 100px; height: 100px; object-fit: cover; margin-top: 5px; border-radius: 4px; }
         .ref-label { font-size: 13px; font-weight: bold; margin-bottom: 5px; color: #555; }
     </style>
@@ -28,19 +28,19 @@
     <div class="card">
         <h2>1. Generate New Sensor Label</h2>
         <form id="generateForm">
-            <label for="typeInput"><strong>Sensor Type (Master Catalog ID):</strong></label>
-            <input type="text" id="typeInput" placeholder="e.g., SENSOR_A" required>
+            <label for="typeSelect"><strong>Sensor Type:</strong></label>
+            <select id="typeSelect" required>
+                <option value="" disabled selected>Loading sensors...</option>
+            </select>
             
-            <label for="batchInput"><strong>Batch Number:</strong></label>
-            <input type="text" id="batchInput" placeholder="e.g., B-2026-05" required>
-            
-            <button type="submit" style="margin-top: 10px;">Generate & Save Label</button>
+            <button type="submit" style="margin-top: 15px;">Generate & Save Label</button>
         </form>
         
         <div id="generateResult" class="hidden" style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;">
             <p style="color: green; font-weight: bold;">Success! Label Generated:</p>
             <img id="resultImage" src="" alt="Generated Label">
             <p style="font-family: monospace; background: #eee; padding: 5px;">Smart ID: <span id="resultId"></span></p>
+            <p style="font-family: monospace; background: #eee; padding: 5px;">Batch: <span id="resultBatch"></span></p>
         </div>
     </div>
 
@@ -53,7 +53,7 @@
             <h3 style="margin-top:0; color: #0052cc;">Sensor Scan Results</h3>
             
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 14px;">
-                <p><strong>Generated Date:</strong> <br><span id="displayDate"></span></p>
+                <p><strong>Production Date:</strong> <br><span id="displayDate"></span></p>
                 <p><strong>Batch:</strong> <br><span id="displayBatch"></span></p>
                 <p><strong>Sensor Type:</strong> <br><span id="displayTypeId"></span></p>
                 <p><strong>Target Chemical:</strong> <br><span id="displayTarget" style="color: #d93025; font-weight: bold;"></span></p>
@@ -62,17 +62,18 @@
             <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
             
             <h4 style="margin-bottom: 5px;">Visual Reference Guide</h4>
-            <p style="font-size: 12px; color: #666; margin-top: 0;">Compare physical sensor color to the guide below:</p>
             
             <div class="ref-grid" id="referenceGrid">
                 <div class="ref-item">
                     <div class="ref-label">Fresh (Good)</div>
                     <img id="imgGood" src="" alt="Good State">
                 </div>
-                <div class="ref-item">
+                
+                <div class="ref-item" id="transItemContainer">
                     <div class="ref-label">Tending to Bad</div>
                     <img id="imgTrans" src="" alt="Transition State">
                 </div>
+                
                 <div class="ref-item">
                     <div class="ref-label">Fully Bad</div>
                     <img id="imgBad" src="" alt="Bad State">
@@ -80,23 +81,37 @@
             </div>
             
             <div id="noCatalogWarning" class="hidden" style="margin-top: 15px; color: #d93025; font-size: 14px; background: #fce8e6; padding: 10px; border-radius: 4px;">
-                ⚠️ Master Catalog data for this sensor type could not be found. Visual references are unavailable.
+                ⚠️ Master Catalog data for this sensor type could not be found.
             </div>
         </div>
     </div>
 
     <script>
-        // --- 1. Logic for Generating Label ---
+        // Fetch Master Catalog to populate the dropdown on page load
+        async function loadCatalog() {
+            try {
+                const res = await fetch('/api/catalog');
+                const data = await res.json();
+                const select = document.getElementById('typeSelect');
+                select.innerHTML = '<option value="" disabled selected>Select a sensor...</option>';
+                
+                data.catalog.forEach(item => {
+                    const opt = document.createElement('option');
+                    opt.value = item.id;
+                    opt.innerText = `${item.id} - ${item.target}`;
+                    select.appendChild(opt);
+                });
+            } catch (error) {
+                console.error("Failed to load catalog", error);
+                document.getElementById('typeSelect').innerHTML = '<option value="" disabled>Error loading catalog</option>';
+            }
+        }
+
         document.getElementById('generateForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
-            const payload = {
-                sensor_type_id: document.getElementById('typeInput').value.trim(),
-                batch_number: document.getElementById('batchInput').value.trim()
-            };
+            const payload = { sensor_type_id: document.getElementById('typeSelect').value };
 
             try {
-                // Post JSON data to backend
                 const response = await fetch('/api/sensors/generate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -106,62 +121,58 @@
                 if (!response.ok) throw new Error("Server Error during generation");
                 const data = await response.json();
                 
-                // Display result
                 document.getElementById('resultImage').src = data.label_url;
                 document.getElementById('resultId').innerText = data.id;
+                document.getElementById('resultBatch').innerText = data.batch;
                 document.getElementById('generateResult').classList.remove('hidden');
             } catch (error) {
                 alert("Error generating sensor: " + error.message);
-                console.error(error);
             }
         });
 
-        // --- 2. Logic for Scanning ---
         function startScanner() {
             const html5QrCode = new Html5Qrcode("reader");
             const config = { fps: 10, qrbox: { width: 250, height: 250 } };
 
             html5QrCode.start({ facingMode: "environment" }, config, async (decodedText) => {
-                // Stop scanner on successful read
                 html5QrCode.stop();
                 document.getElementById('reader').innerHTML = "<p style='color:green;'>Scan successful. Fetching data from database...</p>";
 
                 try {
-                    // Extract Smart ID from the URL (Format: http://domain/?id=SMART_ID)
                     const urlObj = new URL(decodedText);
                     const smartId = urlObj.searchParams.get("id");
-
-                    if(smartId) {
-                        fetchSensorData(smartId);
-                    } else {
-                        alert("Invalid QR Code Format. Missing ID parameter.");
-                    }
+                    if(smartId) fetchSensorData(smartId);
                 } catch(e) {
                     alert("Scanned data is not a valid URL.");
                 }
             }).catch((err) => { console.error("Camera error:", err); });
         }
 
-        // --- 3. Logic for Fetching and Displaying Data ---
         async function fetchSensorData(smartId) {
             try {
                 const response = await fetch(`/api/sensors/scan/${smartId}`);
-                if (!response.ok) throw new Error("Sensor data not found in database.");
+                if (!response.ok) throw new Error("Sensor data not found.");
                 const data = await response.json();
                 
-                // Populate Transactional Label Info
                 const dateObj = new Date(data.label_info.generated_at);
                 document.getElementById('displayDate').innerText = dateObj.toLocaleString();
                 document.getElementById('displayBatch').innerText = data.label_info.batch_number;
                 document.getElementById('displayTypeId').innerText = data.label_info.type_id;
 
-                // Populate Dynamic Catalog Info (Target Chemical & Images)
                 if (data.catalog_info) {
                     document.getElementById('displayTarget').innerText = data.catalog_info.target_chemical || "Not Specified";
                     
                     document.getElementById('imgGood').src = data.catalog_info.image_good_url;
-                    document.getElementById('imgTrans').src = data.catalog_info.image_trans_url;
                     document.getElementById('imgBad').src = data.catalog_info.image_bad_url;
+                    
+                    // Modification 4: Conditional Rendering for "Tending to Bad" state
+                    const transImgUrl = data.catalog_info.image_trans_url;
+                    if (transImgUrl && transImgUrl.trim() !== "") {
+                        document.getElementById('imgTrans').src = transImgUrl;
+                        document.getElementById('transItemContainer').style.display = "block";
+                    } else {
+                        document.getElementById('transItemContainer').style.display = "none";
+                    }
                     
                     document.getElementById('referenceGrid').classList.remove('hidden');
                     document.getElementById('noCatalogWarning').classList.add('hidden');
@@ -171,22 +182,17 @@
                     document.getElementById('noCatalogWarning').classList.remove('hidden');
                 }
 
-                // Show the data card
                 document.getElementById('sensorData').classList.remove('hidden');
             } catch (error) {
                 alert(error.message);
             }
         }
 
-        // --- 4. Page Load Init ---
-        // If the user scans a QR code using their native phone camera, it will open the browser
-        // directly to the URL with the ?id= parameter. This catches it and loads the data immediately.
         window.onload = () => {
+            loadCatalog();
             const params = new URLSearchParams(window.location.search);
             const smartId = params.get('id');
-            if (smartId) {
-                fetchSensorData(smartId);
-            }
+            if (smartId) fetchSensorData(smartId);
         };
     </script>
 </body>
