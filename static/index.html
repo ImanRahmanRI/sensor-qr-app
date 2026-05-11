@@ -6,50 +6,85 @@
     <title>Colorimetric Sensor Platform</title>
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <style>
-        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; color: #333; }
-        .card { border: 1px solid #ddd; padding: 20px; border-radius: 8px; margin-bottom: 20px; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        button { padding: 10px 15px; background: #0052cc; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        button:hover { background: #003d99; }
-        input, select { width: 100%; margin: 10px 0; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-        img { max-width: 100%; height: auto; border: 1px solid #eee; }
-        .hidden { display: none; }
-        #reader { width: 100%; max-width: 500px; margin: 0 auto; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; color: #333; background: #f4f7f6; display: flex; flex-direction: column; min-height: 95vh; }
         
+        /* Branding & Header */
+        .header { display: flex; justify-content: center; align-items: center; gap: 20px; margin-bottom: 20px; padding: 20px; background: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .header img { max-height: 60px; object-fit: contain; }
+        .header h1 { margin: 0; color: #111; font-size: 24px; text-align: center; }
+
+        /* Card & Views */
+        .card { border: 1px solid #ddd; padding: 30px; border-radius: 8px; margin-bottom: 20px; background: #fff; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .view-section { display: none; } /* Hidden by default */
+        .view-section.active { display: block; } /* Shown when active */
+
+        /* Buttons & Forms */
+        .btn-group { display: flex; gap: 15px; justify-content: center; margin-top: 20px; }
+        .btn { flex: 1; padding: 15px 20px; font-size: 16px; background: #0052cc; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; text-align: center; transition: background 0.2s; }
+        .btn:hover { background: #003d99; }
+        .btn-secondary { background: #6c757d; }
+        .btn-secondary:hover { background: #5a6268; }
+        
+        input, select { width: 100%; margin: 10px 0; padding: 12px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 15px; }
+        img { max-width: 100%; height: auto; border: 1px solid #eee; border-radius: 4px; }
+        
+        /* Grid */
         .ref-grid { display: flex; gap: 15px; flex-wrap: wrap; margin-top: 15px; justify-content: space-around; }
         .ref-item { flex: 1; min-width: 120px; max-width: 150px; text-align: center; border: 1px solid #eee; padding: 10px; border-radius: 8px; background: #fafafa; }
         .ref-item img { width: 100px; height: 100px; object-fit: cover; margin-top: 5px; border-radius: 4px; }
         .ref-label { font-size: 13px; font-weight: bold; margin-bottom: 5px; color: #555; }
+        
+        /* Footer */
+        .footer { margin-top: auto; text-align: center; padding: 20px 0; font-size: 13px; color: #666; border-top: 1px solid #ddd; }
+        .footer a { color: #0052cc; text-decoration: none; }
     </style>
 </head>
-<body style="background: #f4f7f6;">
+<body>
 
-    <h1 style="text-align: center; color: #111;">Sensor Management</h1>
+    <div class="header">
+        <img src="/static/ugm-logo.png" alt="MIPA UGM">
+        <h1>Colorimetric Sensor Platform</h1>
+        <img src="/static/torc-logo.png" alt="TOR-C Logo">
+    </div>
 
-    <div class="card">
-        <h2>1. Generate New Sensor Label</h2>
+    <div id="view-landing" class="card view-section active">
+        <h2 style="text-align: center; margin-top: 0;">Welcome</h2>
+        <p style="text-align: center; color: #666;">Please select an action below to continue.</p>
+        <div class="btn-group">
+            <button class="btn" onclick="switchView('view-generate')">🏭 Generate New Label</button>
+            <button class="btn btn-secondary" onclick="switchView('view-scan')">📷 Scan Sensor QR</button>
+        </div>
+    </div>
+
+    <div id="view-generate" class="card view-section">
+        <button class="btn btn-secondary" style="padding: 8px 12px; margin-bottom: 15px; font-size: 14px;" onclick="switchView('view-landing')">← Back to Home</button>
+        <h2 style="margin-top: 0;">Generate Label</h2>
         <form id="generateForm">
             <label for="typeSelect"><strong>Sensor Type:</strong></label>
             <select id="typeSelect" required>
                 <option value="" disabled selected>Loading sensors...</option>
             </select>
-            
-            <button type="submit" style="margin-top: 15px;">Generate & Save Label</button>
+            <button type="submit" class="btn" style="width: 100%;">Generate & Save Label</button>
         </form>
         
-        <div id="generateResult" class="hidden" style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;">
-            <p style="color: green; font-weight: bold;">Success! Label Generated:</p>
+        <div id="generateResult" style="display: none; margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;">
+            <p style="color: green; font-weight: bold;">✅ Success! Label Generated:</p>
             <img id="resultImage" src="" alt="Generated Label">
             <p style="font-family: monospace; background: #eee; padding: 5px;">Smart ID: <span id="resultId"></span></p>
             <p style="font-family: monospace; background: #eee; padding: 5px;">Batch: <span id="resultBatch"></span></p>
+            
+            <button class="btn" style="width: 100%; margin-top: 10px; background: #28a745;" onclick="downloadLabel()">⬇️ Download Label</button>
         </div>
     </div>
 
-    <div class="card">
-        <h2>2. Scan Sensor QR</h2>
-        <button id="startScanBtn" onclick="startScanner()">Start Camera Scanner</button>
-        <div id="reader" style="margin-top: 15px;"></div>
+    <div id="view-scan" class="card view-section">
+        <button class="btn btn-secondary" style="padding: 8px 12px; margin-bottom: 15px; font-size: 14px;" onclick="switchView('view-landing')">← Back to Home</button>
+        <h2 style="margin-top: 0;">Scan Sensor QR</h2>
         
-        <div id="sensorData" class="hidden" style="margin-top: 20px; background: #fff; padding: 20px; border-radius: 8px; border: 2px solid #0052cc;">
+        <button id="startScanBtn" class="btn" style="width: 100%; margin-bottom: 15px;" onclick="startScanner()">Start Camera Scanner</button>
+        <div id="reader"></div>
+        
+        <div id="sensorData" style="display: none; margin-top: 20px; background: #fdfdfd; padding: 20px; border-radius: 8px; border: 2px solid #0052cc;">
             <h3 style="margin-top:0; color: #0052cc;">Sensor Scan Results</h3>
             
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 14px;">
@@ -60,7 +95,6 @@
             </div>
             
             <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
-            
             <h4 style="margin-bottom: 5px;">Visual Reference Guide</h4>
             
             <div class="ref-grid" id="referenceGrid">
@@ -68,33 +102,46 @@
                     <div class="ref-label">Fresh (Good)</div>
                     <img id="imgGood" src="" alt="Good State">
                 </div>
-                
                 <div class="ref-item" id="transItemContainer">
                     <div class="ref-label">Tending to Bad</div>
                     <img id="imgTrans" src="" alt="Transition State">
                 </div>
-                
                 <div class="ref-item">
                     <div class="ref-label">Fully Bad</div>
                     <img id="imgBad" src="" alt="Bad State">
                 </div>
             </div>
             
-            <div id="noCatalogWarning" class="hidden" style="margin-top: 15px; color: #d93025; font-size: 14px; background: #fce8e6; padding: 10px; border-radius: 4px;">
+            <div id="noCatalogWarning" style="display: none; margin-top: 15px; color: #d93025; font-size: 14px; background: #fce8e6; padding: 10px; border-radius: 4px;">
                 ⚠️ Master Catalog data for this sensor type could not be found.
             </div>
         </div>
     </div>
 
+    <div class="footer">
+        <p><strong>Colorimetric Sensor Platform</strong></p>
+        <p>Supervised by <strong>Kuwat Triyana</strong></p>
+        <p>Contact: <a href="mailto:triyana@ugm.ac.id">triyana@ugm.ac.id</a> | Universitas Gadjah Mada</p>
+        <p>Developed by <strong>Iman Rahman</strong></p>
+        <p>Contact: <a href="mailto:imanrahmanri@gmail.com">imanrahmanri@gmail.com</a> | Universitas Gadjah Mada</p>
+    </div>
+
     <script>
-        // Fetch Master Catalog to populate the dropdown on page load
+        // --- Routing Logic ---
+        function switchView(viewId) {
+            // Hide all views
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            // Show the target view
+            document.getElementById(viewId).classList.add('active');
+        }
+
+        // --- Data Fetching Logic ---
         async function loadCatalog() {
             try {
                 const res = await fetch('/api/catalog');
                 const data = await res.json();
                 const select = document.getElementById('typeSelect');
                 select.innerHTML = '<option value="" disabled selected>Select a sensor...</option>';
-                
                 data.catalog.forEach(item => {
                     const opt = document.createElement('option');
                     opt.value = item.id;
@@ -103,40 +150,72 @@
                 });
             } catch (error) {
                 console.error("Failed to load catalog", error);
-                document.getElementById('typeSelect').innerHTML = '<option value="" disabled>Error loading catalog</option>';
             }
         }
 
+        // --- Generation Logic ---
         document.getElementById('generateForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const payload = { sensor_type_id: document.getElementById('typeSelect').value };
-
             try {
                 const response = await fetch('/api/sensors/generate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
-                
                 if (!response.ok) throw new Error("Server Error during generation");
                 const data = await response.json();
-                
                 document.getElementById('resultImage').src = data.label_url;
                 document.getElementById('resultId').innerText = data.id;
                 document.getElementById('resultBatch').innerText = data.batch;
-                document.getElementById('generateResult').classList.remove('hidden');
+                document.getElementById('generateResult').style.display = 'block';
             } catch (error) {
                 alert("Error generating sensor: " + error.message);
             }
         });
 
+        // --- Download Logic ---
+        async function downloadLabel() {
+            const imgUrl = document.getElementById('resultImage').src;
+            const smartId = document.getElementById('resultId').innerText;
+            
+            if (!imgUrl) return;
+
+            try {
+                // Fetch the image as a Blob to force a direct download instead of opening in a new tab
+                const response = await fetch(imgUrl);
+                const blob = await response.blob();
+                const blobUrl = window.URL.createObjectURL(blob);
+                
+                // Create a temporary hidden link and click it
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = blobUrl;
+                a.download = `Sensor-Label-${smartId}.jpg`; // Automatically names the file
+                
+                document.body.appendChild(a);
+                a.click();
+                
+                // Clean up
+                window.URL.revokeObjectURL(blobUrl);
+                document.body.removeChild(a);
+            } catch (err) {
+                console.error("Error downloading image:", err);
+                // Fallback: Just open the image in a new tab if Blob fetch fails
+                window.open(imgUrl, '_blank');
+            }
+        }
+
+        // --- Scanning Logic ---
         function startScanner() {
             const html5QrCode = new Html5Qrcode("reader");
             const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+            
+            document.getElementById('sensorData').style.display = 'none';
 
             html5QrCode.start({ facingMode: "environment" }, config, async (decodedText) => {
                 html5QrCode.stop();
-                document.getElementById('reader').innerHTML = "<p style='color:green;'>Scan successful. Fetching data from database...</p>";
+                document.getElementById('reader').innerHTML = "<p style='color:green;'>✅ Scan successful. Fetching data...</p>";
 
                 try {
                     const urlObj = new URL(decodedText);
@@ -148,6 +227,7 @@
             }).catch((err) => { console.error("Camera error:", err); });
         }
 
+        // --- Data Display Logic ---
         async function fetchSensorData(smartId) {
             try {
                 const response = await fetch(`/api/sensors/scan/${smartId}`);
@@ -155,17 +235,15 @@
                 const data = await response.json();
                 
                 const dateObj = new Date(data.label_info.generated_at);
-                document.getElementById('displayDate').innerText = dateObj.toLocaleString();
+                document.getElementById('displayDate').innerText = dateObj.toLocaleDateString();
                 document.getElementById('displayBatch').innerText = data.label_info.batch_number;
                 document.getElementById('displayTypeId').innerText = data.label_info.type_id;
 
                 if (data.catalog_info) {
                     document.getElementById('displayTarget').innerText = data.catalog_info.target_chemical || "Not Specified";
-                    
                     document.getElementById('imgGood').src = data.catalog_info.image_good_url;
                     document.getElementById('imgBad').src = data.catalog_info.image_bad_url;
                     
-                    // Modification 4: Conditional Rendering for "Tending to Bad" state
                     const transImgUrl = data.catalog_info.image_trans_url;
                     if (transImgUrl && transImgUrl.trim() !== "") {
                         document.getElementById('imgTrans').src = transImgUrl;
@@ -174,25 +252,33 @@
                         document.getElementById('transItemContainer').style.display = "none";
                     }
                     
-                    document.getElementById('referenceGrid').classList.remove('hidden');
-                    document.getElementById('noCatalogWarning').classList.add('hidden');
+                    document.getElementById('referenceGrid').style.display = 'flex';
+                    document.getElementById('noCatalogWarning').style.display = 'none';
                 } else {
                     document.getElementById('displayTarget').innerText = "Unknown";
-                    document.getElementById('referenceGrid').classList.add('hidden');
-                    document.getElementById('noCatalogWarning').classList.remove('hidden');
+                    document.getElementById('referenceGrid').style.display = 'none';
+                    document.getElementById('noCatalogWarning').style.display = 'block';
                 }
 
-                document.getElementById('sensorData').classList.remove('hidden');
+                document.getElementById('sensorData').style.display = 'block';
             } catch (error) {
                 alert(error.message);
             }
         }
 
+        // --- Initialization ---
         window.onload = () => {
             loadCatalog();
+            
+            // Native Phone Camera Redirect Logic:
+            // If the user scanned the QR with their native phone camera, the URL will have ?id=
+            // We intercept this, automatically switch to the scan view, and load the data.
             const params = new URLSearchParams(window.location.search);
             const smartId = params.get('id');
-            if (smartId) fetchSensorData(smartId);
+            if (smartId) {
+                switchView('view-scan');
+                fetchSensorData(smartId);
+            }
         };
     </script>
 </body>

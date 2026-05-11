@@ -63,7 +63,7 @@ async def generate_sensor(payload: GenerateLabelRequest):
     # Modification 1b: Auto-generate the Batch Number
     auto_batch_number = f"BATCH-{date_str}{time_str}-{short_hash}"
     
-    base_url = os.environ.get("APP_URL", "http://localhost:8080")
+    base_url = "https://sensor-app-920027015367.asia-southeast2.run.app"
     qr_data = f"{base_url}/?id={smart_id}"
 
     try:
