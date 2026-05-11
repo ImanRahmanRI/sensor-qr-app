@@ -2,7 +2,7 @@
 
 All notable changes to `sensor-qr-app` will be documented in this file.
 
-## [Unreleased] -
+## [1.0.0] -
 ### Added
 - Download button
 - add color ref based on sensor type
